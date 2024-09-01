@@ -1,0 +1,6 @@
+Flask
+flask-socketio
+pyodbc
+opencv-python
+numpy
+pyautogui

@@ -1,37 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebSocket Test</title>
-    <!-- Load the socket.io client script from a CDN -->
-    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js" crossorigin="anonymous"></script>
-    <script type="text/javascript">
+<meta charset="UTF-8">
+<title>Monitor</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f9;
+        margin: 0;
+        padding: 20px;
+    }
+    h1 {
+        color: #333;
+    }
+    .monitor-info {
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 20px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    p {
+        margin: 10px 0;
+    }
+</style>
+<script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+<script>
 document.addEventListener('DOMContentLoaded', function () {
-    var protocol = location.protocol.replace('http', 'ws'); // Changes 'https:' to 'wss:' and 'http:' to 'ws:'
-    var socket = io.connect(protocol + '//' + document.domain + ':' + location.port);
-
+    var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
     socket.on('connect', function() {
-        socket.send('User has connected!');
+        console.log('Connected!');
     });
-
-    socket.on('response', function(msg) {
-        document.getElementById('response').innerHTML += '<br>' + msg.data;
+    socket.on('screen_data', function(data) {
+        // Assuming data is base64 encoded image data
+        document.getElementById('screenImage').src = 'data:image/png;base64,' + data;
     });
-
-    document.getElementById('sendButton').onclick = function() {
-        var text = document.getElementById('textInput').value;
-        socket.send(text);
-        document.getElementById('textInput').value = '';
-    };
 });
-
-    </script>
+</script>
 </head>
 <body>
-    <h1>WebSocket Test</h1>
-    <input type="text" id="textInput" placeholder="Type your message here...">
-    <button id="sendButton">Send</button>
-    <div id="response">Responses will appear here.</div>
+<div class="monitor-info">
+    <h1>Monitor Page</h1>
+    <img id="screenImage" src="" alt="Screen Image" />
+</div>
 </body>
 </html>

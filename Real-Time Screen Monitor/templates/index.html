@@ -1,48 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Monitor</title>
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        background-color: #f4f4f9;
-        margin: 0;
-        padding: 20px;
-    }
-    h1 {
-        color: #333;
-    }
-    .monitor-info {
-        background: #ffffff;
-        padding: 20px;
-        border-radius: 8px;
-        margin-top: 20px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    p {
-        margin: 10px 0;
-    }
-</style>
-<script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    console.log(location.protocol + '//' + document.domain + ':' + location.port)
-    var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
-    socket.on('connect', function() {
-        console.log('Connected!');
-    });
-    socket.on('screen_data', function(data) {
-        // Assuming data is base64 encoded image data
-        document.getElementById('screenImage').src = 'data:image/png;base64,' + data;
-    });
-});
-</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Screen Monitor</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e3f2fd;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            background-color: #fff;
+            padding: 20px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #0277bd;
+            margin-bottom: 20px;
+        }
+        .btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 10px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .btn-connect {
+            background-color: #0288d1;
+            color: white;
+        }
+        .btn-connect:hover {
+            background-color: #0277bd;
+        }
+        .btn-disconnect {
+            background-color: #d32f2f;
+            color: white;
+        }
+        .btn-disconnect:hover {
+            background-color: #c62828;
+        }
+        .status {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #333;
+        }
+    </style>
 </head>
 <body>
-<div class="monitor-info">
-    <h1>Monitor Page</h1>
-    <img id="screenImage" src="" alt="Screen Image" />
-</div>
+    <div class="container">
+        <h1>Real-Time Screen Monitor</h1>
+        <button id="connectBtn" class="btn btn-connect">Connect</button>
+        <button id="disconnectBtn" class="btn btn-disconnect">Disconnect</button>
+        <a href="/logout" class="link">Logout</a>
+
+        <div class="status" id="status">
+            <p><strong>Time In:</strong> <span id="timeIn"></span></p>
+            <p><strong>Time Out:</strong> <span id="timeOut"></span></p>
+            <p><strong>Duration:</strong> <span id="duration"></span></p>
+            <p><strong>Breakdown:</strong> <span id="breakdown"></span></p>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function(){
+            // Check status on page load
+            $.get('/status', function(data){
+                if(data.running) {
+                    $('#timeIn').text(data.time_in);
+                }
+            });
+
+            $('#connectBtn').click(function(){
+                $.post('/connect', function(data){
+                    alert('Status: ' + data.status);
+                    $('#timeIn').text(data.time_in);
+                    $('#timeOut').text('');
+                    $('#duration').text('');
+                    $('#breakdown').text('');
+                });
+            });
+
+            $('#disconnectBtn').click(function(){
+                $.post('/disconnect', function(data){
+                    alert('Status: ' + data.status);
+                    $('#timeOut').text(data.time_out);
+                    $('#duration').text(data.duration);
+                    $('#breakdown').text(data.breakdown);
+                });
+            });
+        });
+    </script>
 </body>
 </html>

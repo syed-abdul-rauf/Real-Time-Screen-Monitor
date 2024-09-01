@@ -1,25 +1,33 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebSocket Test</title>
-    <script src="https://cdn.socket.io/socket.io-4.0.0.js"></script>
+    <!-- Load the socket.io client script from a CDN -->
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js" integrity="sha384-13RH9WyTIcbq9vT0955ErTyWj4lDz5ZNuQ0PfjONfZUgQnPhC4E6H6jKNuL1OxHg" crossorigin="anonymous"></script>
     <script type="text/javascript">
         document.addEventListener('DOMContentLoaded', function () {
-            var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+            // Check if the socket.io library loaded correctly
+            if (typeof io !== 'undefined') {
+                var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
-            socket.on('connect', function() {
-                socket.send('User has connected!');
-            });
+                socket.on('connect', function() {
+                    socket.emit('message', 'User has connected!'); // Use socket.emit for standard messaging
+                });
 
-            socket.on('response', function(msg) {
-                document.getElementById('response').innerHTML += '<br>' + msg.data;
-            });
+                socket.on('response', function(msg) {
+                    document.getElementById('response').innerHTML += '<br>' + msg.data;
+                });
 
-            document.getElementById('sendButton').onclick = function() {
-                var text = document.getElementById('textInput').value;
-                socket.send(text);
-                document.getElementById('textInput').value = '';
-            };
+                document.getElementById('sendButton').onclick = function() {
+                    var text = document.getElementById('textInput').value;
+                    socket.emit('message', text); // Sending messages via emit
+                    document.getElementById('textInput').value = '';
+                };
+            } else {
+                console.error("Socket.io did not load properly!");
+            }
         });
     </script>
 </head>
@@ -27,6 +35,6 @@
     <h1>WebSocket Test</h1>
     <input type="text" id="textInput" placeholder="Type your message here...">
     <button id="sendButton">Send</button>
-    <div id="response"></div>
+    <div id="response">Responses will appear here.</div>
 </body>
 </html>

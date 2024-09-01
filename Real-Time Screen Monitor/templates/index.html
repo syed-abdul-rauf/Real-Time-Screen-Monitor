@@ -4,20 +4,91 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Real-Time Monitor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-image: linear-gradient(to right, #6a11cb, #2575fc);
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #444;
+        }
+
+        p {
+            margin: 10px 0;
+            color: #555;
+        }
+
+        button {
+            background-color: #2575fc;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px 0;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #1a5ccf;
+        }
+
+        a {
+            display: block;
+            margin-top: 20px;
+            color: #2575fc;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        #screen {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
 </head>
 <body>
-    <h2>Welcome, {{ session['username'] }}</h2>
+    <div class="container">
+        <h2>Welcome, {{ session['username'] }}</h2>
 
-    <p>Time In: {{ time_in }}</p>
-    <p>Time Out: {{ time_out }}</p>
-    <p>Duration: {{ duration }}</p>
-    <p>Breakdown: {{ breakdown }}</p>
+        <p>Time In: {{ time_in }}</p>
+        <p>Time Out: {{ time_out }}</p>
+        <p>Duration: {{ duration }}</p>
+        <p>Breakdown: {{ breakdown }}</p>
 
-    <button id="connect-btn">Connect</button>
-    <button id="disconnect-btn">Disconnect</button>
-    <a href="{{ url_for('logout') }}">Logout</a>
+        <button id="connect-btn">Connect</button>
+        <button id="disconnect-btn">Disconnect</button>
+        <a href="{{ url_for('logout') }}">Logout</a>
 
-    <img id="screen" src="" alt="Screen will appear here" style="width:100%; height:auto;"/>
+        <img id="screen" src="" alt="Screen will appear here"/>
+    </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>

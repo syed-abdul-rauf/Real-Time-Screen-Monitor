@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Monitor</title>
+    <script src="https://cdn.socket.io/socket.io-4.0.0.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var socket = io.connect(location.protocol + '//' + location.host);
+            socket.on('server_response', function(data) {
+                console.log('Received:', data.data);
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>Welcome, {{ username }}</h1>
+    <p>Status: <span id="status">Connecting...</span></p>
+
+    <script>
+        document.getElementById('status').textContent = 'Connected!';
+    </script>
+</body>
+</html>

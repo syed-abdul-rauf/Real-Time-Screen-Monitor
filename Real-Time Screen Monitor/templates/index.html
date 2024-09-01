@@ -17,7 +17,10 @@
     <button id="disconnect-btn">Disconnect</button>
     <a href="{{ url_for('logout') }}">Logout</a>
 
+    <img id="screen" src="" alt="Screen will appear here" style="width:100%; height:auto;"/>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
     <script>
         $(document).ready(function() {
             $('#connect-btn').on('click', function() {
@@ -46,6 +49,13 @@
                         console.error('Error:', error);
                     }
                 });
+            });
+
+            var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+            socket.on('screen_update', function(data) {
+                var image = document.getElementById('screen');
+                image.src = 'data:image/png;base64,' + data.image;
             });
         });
     </script>

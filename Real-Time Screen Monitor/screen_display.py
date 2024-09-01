@@ -1,38 +1,36 @@
-import cv2
-import numpy as np
+import websocket
 import pyautogui
-import logging
+import time
+import base64
+import io
+from PIL import Image
 
-logging.basicConfig(level=logging.INFO)
-
-def capture_screen():
-    # Capture the screen using pyautogui
-    try:
-        screen = pyautogui.screenshot()
-        frame = np.array(screen)
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        return frame
-    except Exception as e:
-        logging.error(f"Error capturing screen: {e}")
-        return None
-
-def main():
-    window_name = "Screen Capture"
-    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-    cv2.moveWindow(window_name, 100, 100)  # Adjust the position of the window
-
+def send_screenshot(ws):
     while True:
-        frame = capture_screen()
-        if frame is not None:
-            cv2.imshow(window_name, frame)
-        else:
-            logging.error("Failed to capture the screen.")
-        
-        # Break the loop on 'q' key press
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+        screenshot = pyautogui.screenshot()
+        buffered = io.BytesIO()
+        screenshot.save(buffered, format="PNG")
+        img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+        ws.send(img_str)
+        time.sleep(1)
 
-    cv2.destroyAllWindows()
+def on_message(ws, message):
+    print("Received message: ", message)
+
+def on_error(ws, error):
+    print("WebSocket Error: ", error)
+
+def on_close(ws, close_status_code, close_msg):
+    print("WebSocket Closed: ", close_status_code, close_msg)
+
+def on_open(ws):
+    send_screenshot(ws)
 
 if __name__ == "__main__":
-    main()
+    websocket.enableTrace(True)
+    ws = websocket.WebSocketApp("ws://localhost:5000",
+                                on_open=on_open,
+                                on_message=on_message,
+                                on_error=on_error,
+                                on_close=on_close)
+    ws.run_forever()

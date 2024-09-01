@@ -1,36 +1,35 @@
-import websocket
+import socketio
 import pyautogui
-import time
+import numpy as np
+import cv2
 import base64
-import io
-from PIL import Image
+import time
 
-def send_screenshot(ws):
+# Setup socket client
+sio = socketio.Client()
+sio.connect('https://real-time-screen-monitor.onrender.com:5000')  # Change to your server's address
+
+def capture_and_send():
     while True:
+        # Capture the screen
         screenshot = pyautogui.screenshot()
-        buffered = io.BytesIO()
-        screenshot.save(buffered, format="PNG")
-        img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
-        ws.send(img_str)
-        time.sleep(1)
+        frame = np.array(screenshot)
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        _, buffer = cv2.imencode('.jpg', frame)
+        jpg_as_text = base64.b64encode(buffer).decode()
 
-def on_message(ws, message):
-    print("Received message: ", message)
+        # Send the screen capture
+        sio.emit('screen_data', {'image_data': jpg_as_text})
+        time.sleep(0.5)  # Adjust the frame rate as needed
 
-def on_error(ws, error):
-    print("WebSocket Error: ", error)
+@sio.event
+def connect():
+    print("Connected to the server.")
+    capture_and_send()
 
-def on_close(ws, close_status_code, close_msg):
-    print("WebSocket Closed: ", close_status_code, close_msg)
-
-def on_open(ws):
-    send_screenshot(ws)
+@sio.event
+def disconnect():
+    print("Disconnected from the server.")
 
 if __name__ == "__main__":
-    websocket.enableTrace(True)
-    ws = websocket.WebSocketApp("ws://localhost:5000",
-                                on_open=on_open,
-                                on_message=on_message,
-                                on_error=on_error,
-                                on_close=on_close)
-    ws.run_forever()
+    capture_and_send()

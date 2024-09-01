@@ -97,7 +97,7 @@
             $('#connect-btn').on('click', function() {
                 $.ajax({
                     type: 'POST',
-                    url: '{{ url_for("connect") }}',
+                    url: 'https://' + document.domain + ':' + location.port + '/connect',
                     success: function(response) {
                         alert("Connected: " + response.time_in);
                         location.reload();
@@ -111,7 +111,7 @@
             $('#disconnect-btn').on('click', function() {
                 $.ajax({
                     type: 'POST',
-                    url: '{{ url_for("disconnect") }}',
+                    url: 'https://' + document.domain + ':' + location.port + '/disconnect',
                     success: function(response) {
                         alert("Disconnected: " + response.time_out);
                         location.reload();
@@ -122,7 +122,7 @@
                 });
             });
 
-            var socket = io.connect('http://' + document.domain + ':' + location.port);
+            var socket = io.connect('wss://' + document.domain + ':' + location.port);
 
             socket.on('screen_update', function(data) {
                 var image = document.getElementById('screen');
@@ -132,4 +132,3 @@
     </script>
 </body>
 </html>
-  

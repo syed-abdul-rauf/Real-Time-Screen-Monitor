@@ -1,35 +1,38 @@
-import socketio
-import pyautogui
-import numpy as np
 import cv2
-import base64
-import time
+import numpy as np
+import pyautogui
+import logging
 
-# Setup socket client
-sio = socketio.Client()
-sio.connect('https://real-time-screen-monitor.onrender.com:5000')  # Change to your server's address
+logging.basicConfig(level=logging.INFO)
 
-def capture_and_send():
-    while True:
-        # Capture the screen
-        screenshot = pyautogui.screenshot()
-        frame = np.array(screenshot)
+def capture_screen():
+    # Capture the screen using pyautogui
+    try:
+        screen = pyautogui.screenshot()
+        frame = np.array(screen)
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        _, buffer = cv2.imencode('.jpg', frame)
-        jpg_as_text = base64.b64encode(buffer).decode()
+        return frame
+    except Exception as e:
+        logging.error(f"Error capturing screen: {e}")
+        return None
 
-        # Send the screen capture
-        sio.emit('screen_data', {'image_data': jpg_as_text})
-        time.sleep(0.5)  # Adjust the frame rate as needed
+def main():
+    window_name = "Screen Capture"
+    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+    cv2.moveWindow(window_name, 100, 100)  # Adjust the position of the window
 
-@sio.event
-def connect():
-    print("Connected to the server.")
-    capture_and_send()
+    while True:
+        frame = capture_screen()
+        if frame is not None:
+            cv2.imshow(window_name, frame)
+        else:
+            logging.error("Failed to capture the screen.")
+        
+        # Break the loop on 'q' key press
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
 
-@sio.event
-def disconnect():
-    print("Disconnected from the server.")
+    cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    capture_and_send()
+    main()

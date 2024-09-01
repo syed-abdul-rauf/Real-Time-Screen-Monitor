@@ -35,6 +35,7 @@ def login():
     username = request.form['username']
     session['username'] = username
     users[username] = {'time_in': None, 'time_out': None}
+    logging.info(f"User {username} added to in-memory storage.")
     return redirect(url_for('monitor'))
 
 @app.route('/monitor')
@@ -53,16 +54,27 @@ def monitor():
 
 @app.route('/logout')
 def logout():
-    session.pop('username', None)
+    username = session.pop('username', None)
+    if username:
+        logging.info(f"User {username} logged out.")
     return redirect(url_for('home'))
 
 @app.route('/connect', methods=['POST'])
 def connect():
+    logging.info("Received POST request at /connect")
+
     if 'username' not in session:
+        logging.error("No username found in session, redirecting to home.")
         return redirect(url_for('home'))
 
     global process
     username = session['username']
+
+    # Ensure user exists in the in-memory storage
+    if username not in users:
+        logging.warning(f"User {username} not found in in-memory storage, adding user.")
+        users[username] = {'time_in': None, 'time_out': None}
+
     user = users[username]
 
     if process is None:
@@ -71,23 +83,32 @@ def connect():
             user['time_in'] = time_in
             user['time_out'] = None
             process = subprocess.Popen(['python', 'screen_display.py'])
-            logging.info("Subprocess started successfully.")
+            logging.info(f"Subprocess started successfully for user {username}.")
             return jsonify(status="connected", time_in=format_time(time_in))
         except Exception as e:
-            logging.error(f"Failed to start subprocess: {e}")
+            logging.error(f"Failed to start subprocess for user {username}: {e}")
             return jsonify(status="failed", error=str(e))
     else:
+        logging.info(f"User {username} is already connected.")
         return jsonify(status="already connected", time_in=format_time(user['time_in']))
 
 @app.route('/disconnect', methods=['POST'])
 def disconnect():
+    logging.info("Received POST request at /disconnect")
+
     if 'username' not in session:
+        logging.error("No username found in session, redirecting to home.")
         return redirect(url_for('home'))
 
     global process
     if process is not None:
         username = session['username']
-        user = users[username]
+        user = users.get(username)
+
+        if user is None:
+            logging.error(f"User {username} not found in in-memory storage.")
+            return jsonify(status="error", message="User not found"), 404
+
         time_out = datetime.datetime.now()
         user['time_out'] = time_out
 
@@ -99,6 +120,7 @@ def disconnect():
         logging.info("Subprocess terminated successfully.")
         return jsonify(status="disconnected", time_out=format_time(time_out), duration=formatted_duration, breakdown=breakdown)
     else:
+        logging.warning("No process was running when disconnect was requested.")
         return jsonify(status="not connected")
 
 @socketio.on('connect')

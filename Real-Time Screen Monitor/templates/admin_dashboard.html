@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e3f2fd;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            background-color: #fff;
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+        h1 {
+            color: #0277bd;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+            font-family: Arial, sans-serif;
+        }
+        .btn {
+            padding: 12px 20px;
+            font-size: 16px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            background-color: #0288d1;
+            color: white;
+            font-weight: 600;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+        .btn:hover {
+            background-color: #0277bd;
+        }
+        .message {
+            margin-bottom: 20px;
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Dashboard</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="message">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <form method="POST" action="/admin">
+            <input type="text" name="new_username" placeholder="New Username" required>
+            <input type="password" name="new_password" placeholder="New Password" required>
+            <button type="submit" class="btn">Add User</button>
+        </form>
+    </div>
+</body>
+</html>

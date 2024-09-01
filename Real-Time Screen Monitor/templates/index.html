@@ -122,7 +122,8 @@
                 });
             });
 
-            var socket = io.connect('wss://' + document.domain + ':' + location.port);
+            // var socket = io.connect('wss://' + document.domain + ':' + location.port);
+            var socket = io('wss://' + window.location.hostname + ':5000');
 
             socket.on('screen_update', function(data) {
                 var image = document.getElementById('screen');

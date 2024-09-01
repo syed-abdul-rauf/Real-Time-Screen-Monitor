@@ -40,6 +40,9 @@ def login():
     # Automatically log in and create a new user in memory if it doesn't exist
     if username not in users:
         users[username] = {'time_in': None, 'time_out': None}
+        logging.info(f"User {username} added to in-memory storage.")
+    else:
+        logging.info(f"User {username} logged in.")
     
     return redirect(url_for('monitor'))
 
@@ -59,11 +62,15 @@ def monitor():
 
 @app.route('/logout')
 def logout():
-    session.pop('username', None)
+    username = session.pop('username', None)
+    if username:
+        logging.info(f"User {username} logged out.")
     return redirect(url_for('home'))
 
 @app.route('/connect', methods=['POST'])
 def connect():
+    logging.info("Received POST request at /connect")
+
     if 'username' not in session:
         return redirect(url_for('home'))
 
@@ -72,6 +79,7 @@ def connect():
     user = users.get(username)
 
     if user is None:
+        logging.error(f"User {username} not found in in-memory storage.")
         return jsonify(status="error", message="User not found"), 404
 
     if process is None:
@@ -88,14 +96,18 @@ def connect():
             return jsonify(status="failed", error=str(e))
     else:
         # If the process is already running, just return the time_in
+        logging.info(f"User {username} is already connected.")
         return jsonify(status="already connected", time_in=format_time(user['time_in']))
 
 @app.route('/connect', methods=['GET'])
 def connect_get():
+    logging.warning("Received GET request at /connect, but only POST is allowed.")
     return jsonify(status="error", message="Use POST method for this endpoint"), 405
 
 @app.route('/disconnect', methods=['POST'])
 def disconnect():
+    logging.info("Received POST request at /disconnect")
+
     if 'username' not in session:
         return redirect(url_for('home'))
 
@@ -105,6 +117,7 @@ def disconnect():
         user = users.get(username)
 
         if user is None:
+            logging.error(f"User {username} not found in in-memory storage.")
             return jsonify(status="error", message="User not found"), 404
 
         time_out = datetime.datetime.now()
@@ -120,16 +133,19 @@ def disconnect():
         logging.info("Subprocess terminated successfully.")
         return jsonify(status="disconnected", time_out=format_time(time_out), duration=formatted_duration, breakdown=breakdown)
     else:
+        logging.warning("No process was running when disconnect was requested.")
         return jsonify(status="not connected")
 
 @app.route('/status', methods=['GET'])
 def status():
     if 'username' not in session:
+        logging.warning("Status requested without an active session.")
         return jsonify(running=False)
 
     username = session['username']
     user = users.get(username)
     if user and user['time_in']:
+        logging.info(f"Status requested: User {username} is {'running' if process else 'not running'}.")
         return jsonify(running=process is not None, time_in=format_time(user['time_in']))
     return jsonify(running=False)
 

@@ -19,7 +19,7 @@ def capture_screen():
 def main():
     window_name = "Screen Capture"
     cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-    cv2.moveWindow(window_name, 100, 100)  # Adjust the position of the window
+    cv2.moveWindow(window_name, 100, 100)  # Adjust the position of the window 
 
     while True:
         frame = capture_screen()

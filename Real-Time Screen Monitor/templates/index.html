@@ -27,6 +27,7 @@
 <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    console.log(location.protocol + '//' + document.domain + ':' + location.port)
     var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
     socket.on('connect', function() {
         console.log('Connected!');

@@ -69,7 +69,10 @@ def connect():
 
     global process
     username = session['username']
-    user = users[username]
+    user = users.get(username)
+
+    if user is None:
+        return jsonify(status="error", message="User not found"), 404
 
     if process is None:
         try:
@@ -87,6 +90,10 @@ def connect():
         # If the process is already running, just return the time_in
         return jsonify(status="already connected", time_in=format_time(user['time_in']))
 
+@app.route('/connect', methods=['GET'])
+def connect_get():
+    return jsonify(status="error", message="Use POST method for this endpoint"), 405
+
 @app.route('/disconnect', methods=['POST'])
 def disconnect():
     if 'username' not in session:
@@ -95,7 +102,11 @@ def disconnect():
     global process
     if process is not None:
         username = session['username']
-        user = users[username]
+        user = users.get(username)
+
+        if user is None:
+            return jsonify(status="error", message="User not found"), 404
+
         time_out = datetime.datetime.now()
         user['time_out'] = time_out
 

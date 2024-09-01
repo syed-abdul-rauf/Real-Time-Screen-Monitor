@@ -7,28 +7,25 @@
     <!-- Load the socket.io client script from a CDN -->
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js" crossorigin="anonymous"></script>
     <script type="text/javascript">
-        document.addEventListener('DOMContentLoaded', function () {
-            // Check if the socket.io library loaded correctly
-            if (typeof io !== 'undefined') {
-                var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+document.addEventListener('DOMContentLoaded', function () {
+    var protocol = location.protocol.replace('http', 'ws'); // Changes 'https:' to 'wss:' and 'http:' to 'ws:'
+    var socket = io.connect(protocol + '//' + document.domain + ':' + location.port);
 
-                socket.on('connect', function() {
-                    socket.emit('message', 'User has connected!'); // Use socket.emit for standard messaging
-                });
+    socket.on('connect', function() {
+        socket.send('User has connected!');
+    });
 
-                socket.on('response', function(msg) {
-                    document.getElementById('response').innerHTML += '<br>' + msg.data;
-                });
+    socket.on('response', function(msg) {
+        document.getElementById('response').innerHTML += '<br>' + msg.data;
+    });
 
-                document.getElementById('sendButton').onclick = function() {
-                    var text = document.getElementById('textInput').value;
-                    socket.emit('message', text); // Sending messages via emit
-                    document.getElementById('textInput').value = '';
-                };
-            } else {
-                console.error("Socket.io did not load properly!");
-            }
-        });
+    document.getElementById('sendButton').onclick = function() {
+        var text = document.getElementById('textInput').value;
+        socket.send(text);
+        document.getElementById('textInput').value = '';
+    };
+});
+
     </script>
 </head>
 <body>

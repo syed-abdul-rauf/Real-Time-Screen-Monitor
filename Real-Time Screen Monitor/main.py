@@ -5,6 +5,7 @@ import subprocess
 import os
 import datetime
 import logging
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Secret key for session management
@@ -16,7 +17,7 @@ connection_string = 'DRIVER={SQL Server};SERVER=LAPTOP-ECFADG26\\SQLEXPRESS;DATA
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
-# Ensure the users415 table exists
+# Ensure the users415 table exists with password support
 def create_users_table():
     try:
         with pyodbc.connect(connection_string) as conn:
@@ -26,6 +27,7 @@ def create_users_table():
                 CREATE TABLE users415 (
                     id INT PRIMARY KEY IDENTITY(1,1),
                     username NVARCHAR(80) NOT NULL UNIQUE,
+                    password_hash NVARCHAR(255) NOT NULL,
                     time_in DATETIME NULL,
                     time_out DATETIME NULL
                 );
@@ -58,23 +60,31 @@ def home():
 @app.route('/login', methods=['POST'])
 def login():
     username = request.form['username']
-    session['username'] = username
-    
+    password = request.form['password']
+    hashed_password = generate_password_hash(password)
+
     try:
         with pyodbc.connect(connection_string) as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM users415 WHERE username = ?", (username,))
+            cursor.execute("SELECT password_hash FROM users415 WHERE username = ?", (username,))
             user = cursor.fetchone()
-            if not user:
-                cursor.execute("INSERT INTO users415 (username) VALUES (?)", (username,))
-                conn.commit()
-                logging.info(f"New user {username} added to the database.")
+            if user:
+                if check_password_hash(user[0], password):
+                    session['username'] = username
+                    logging.info(f"User {username} logged in successfully.")
+                    return redirect(url_for('monitor'))
+                else:
+                    logging.info("Password is incorrect.")
+                    return "Password is incorrect", 401
             else:
-                logging.info(f"User {username} exists in the database.")
+                cursor.execute("INSERT INTO users415 (username, password_hash) VALUES (?, ?)", (username, hashed_password))
+                conn.commit()
+                session['username'] = username
+                logging.info(f"New user {username} added to the database with hashed password.")
+                return redirect(url_for('monitor'))
     except Exception as e:
         logging.error(f"Error during login: {e}")
-    
-    return redirect(url_for('monitor'))
+        return str(e), 500
 
 @app.route('/monitor')
 def monitor():
@@ -94,10 +104,10 @@ def monitor():
                 return render_template('index.html', time_in=time_in, time_out=time_out, duration=duration, breakdown=breakdown)
             else:
                 logging.info(f"No session data found for user {username}.")
+                return render_template('index.html', time_in="", time_out="", duration="", breakdown="")
     except Exception as e:
         logging.error(f"Error retrieving session data: {e}")
-    
-    return render_template('index.html')
+        return str(e), 500
 
 @app.route('/logout')
 def logout():
@@ -175,23 +185,5 @@ def disconnect():
     else:
         return jsonify(status="not connected")
 
-@app.route('/status', methods=['GET'])
-def status():
-    if 'username' not in session:
-        return jsonify(running=False)
-
-    username = session['username']
-    try:
-        with pyodbc.connect(connection_string) as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT time_in FROM users415 WHERE username = ?", (username,))
-            user = cursor.fetchone()
-            if user and user[0]:
-                return jsonify(running=process is not None, time_in=format_time(user[0]))
-    except Exception as e:
-        logging.error(f"Error checking status: {e}")
-    
-    return jsonify(running=False)
-
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5001)
+    socketio.run(app, host='0.0.0.0', port=5000)  # Ensure you're using an available port

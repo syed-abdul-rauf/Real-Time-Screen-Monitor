@@ -1,38 +1,23 @@
 import cv2
 import numpy as np
 import pyautogui
-import logging
+import base64
+from flask_socketio import SocketIO, emit
 
-logging.basicConfig(level=logging.INFO)
+socketio = SocketIO(message_queue='Your_Redis_URL')
 
 def capture_screen():
-    # Capture the screen using pyautogui
-    try:
-        screen = pyautogui.screenshot()
-        frame = np.array(screen)
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        return frame
-    except Exception as e:
-        logging.error(f"Error capturing screen: {e}")
-        return None
+    screen = pyautogui.screenshot()
+    frame = np.array(screen)
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    return frame
 
-def main():
-    window_name = "Screen Capture"
-    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-    cv2.moveWindow(window_name, 100, 100)  # Adjust the position of the window
-
+def send_screen():
     while True:
         frame = capture_screen()
-        if frame is not None:
-            cv2.imshow(window_name, frame)
-        else:
-            logging.error("Failed to capture the screen.")
-        
-        # Break the loop on 'q' key press
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-    cv2.destroyAllWindows()
+        _, buffer = cv2.imencode('.jpg', frame)
+        jpg_as_text = base64.b64encode(buffer)
+        socketio.emit('screen_frame', {'image': jpg_as_text.decode('utf-8')}, namespace='/screen')
 
 if __name__ == "__main__":
-    main()
+    send_screen()

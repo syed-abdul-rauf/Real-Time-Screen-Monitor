@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Real-Time Screen Monitor</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script> <!-- Ensure this path is correct based on your server setup -->
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -54,6 +55,10 @@
             font-size: 16px;
             color: #333;
         }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
     </style>
 </head>
 <body>
@@ -68,11 +73,17 @@
             <p><strong>Time Out:</strong> <span id="timeOut"></span></p>
             <p><strong>Duration:</strong> <span id="duration"></span></p>
             <p><strong>Breakdown:</strong> <span id="breakdown"></span></p>
+            <p><strong>Screen:</strong> <img id="screen-image" alt="Screen Image"></p>
         </div>
     </div>
 
     <script>
         $(document).ready(function(){
+            var socket = io.connect('http://' + document.domain + ':' + location.port);
+            socket.on('screen_frame', function(data) {
+                $('#screen-image').attr('src', 'data:image/jpeg;base64,' + data.image);
+            });
+
             // Check status on page load
             $.get('/status', function(data){
                 if(data.running) {

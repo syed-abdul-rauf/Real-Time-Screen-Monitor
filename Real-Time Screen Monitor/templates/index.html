@@ -79,7 +79,7 @@
                     $('#timeIn').text(data.time_in);
                 }
             });
-
+            
             $('#connectBtn').click(function(){
                 $.post('/connect', function(data){
                     alert('Status: ' + data.status);

@@ -1,5 +1,15 @@
 from flask import Flask, render_template, request, redirect, Response, jsonify
-import pyautogui
+import os
+
+# Conditionally import pyautogui and create a virtual display in headless mode
+if "DISPLAY" not in os.environ:
+    from pyvirtualdisplay import Display
+    display = Display(visible=0, size=(1024, 768))
+    display.start()
+    print("Running in headless mode, using pyvirtualdisplay")
+else:
+    import pyautogui
+
 import cv2
 import numpy as np
 from datetime import datetime

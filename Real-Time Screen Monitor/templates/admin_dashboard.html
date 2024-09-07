@@ -5,113 +5,63 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <style>
-        body {
-            background-color: #f7f9fc;
-        }
-        .dashboard-container {
-            margin-top: 50px;
-        }
-        .dashboard-title {
-            font-size: 28px;
-            font-weight: bold;
-            color: #007bff;
-            margin-bottom: 30px;
-        }
-        .users-table {
-            margin-bottom: 30px;
-        }
-        .users-table th, .users-table td {
-            text-align: left;
-            padding: 10px;
-        }
-        .btn-primary {
-            background-color: #17a2b8;
-            border-color: #17a2b8;
-        }
-    </style>
 </head>
 <body>
+    <div class="container mt-5">
+        <h1>Admin Dashboard</h1>
 
-<div class="container dashboard-container">
-    <h1 class="dashboard-title">Admin Dashboard</h1>
-    
-    <!-- Section for Live Users -->
-    <div class="card mb-4">
-        <div class="card-header">
-            Live Users
-        </div>
-        <div class="card-body">
-            {% if live_users %}
-                {% for username, user_data in live_users.items() %}
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span>{{ username }} - Password: {{ user_data.password }} - Connected</span>
-                        <div>
-                            <a href="/view_screen/{{ username }}" class="btn btn-info">View Screen</a>
-                            <a href="/disconnect_user/{{ username }}" class="btn btn-danger">Disconnect</a>
-                        </div>
-                    </div>
+        <!-- Live Users Section -->
+        <h3>Live Users</h3>
+        {% if live_users %}
+        <ul>
+            {% for username, user in live_users.items() %}
+            <li>{{ username }} - Connected
+                <a href="/view_screen/{{ username }}" class="btn btn-primary">View Screen</a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>No live users connected.</p>
+        {% endif %}
+
+        <!-- Users Section -->
+        <h3>Users</h3>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Username</th>
+                    <th>Password</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.name }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.password }}</td>
+                </tr>
                 {% endfor %}
-            {% else %}
-                <p>No live users connected.</p>
-            {% endif %}
-        </div>
-    </div>
+            </tbody>
+        </table>
 
-    <!-- Section for All Users -->
-    <div class="card mb-4">
-        <div class="card-header">
-            Users
-        </div>
-        <div class="card-body">
-            <table class="table table-bordered users-table">
-                <thead class="thead-light">
-                    <tr>
-                        <th>Name</th>
-                        <th>Username</th>
-                        <th>Password</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for user in users %}
-                    <tr>
-                        <td>{{ user.name }}</td>
-                        <td>{{ user.username }}</td>
-                        <td>{{ user.password }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        <!-- Add New User Section -->
+        <h3>Add New User</h3>
+        <form method="POST" action="/add_user">
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" class="form-control" id="name" name="name" placeholder="Enter name">
+            </div>
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" class="form-control" id="username" name="username" placeholder="Enter username">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" class="form-control" id="password" name="password" placeholder="Enter password">
+            </div>
+            <button type="submit" class="btn btn-success">Add User</button>
+        </form>
     </div>
-
-    <!-- Section to Add New User -->
-    <div class="card">
-        <div class="card-header">
-            Add New User
-        </div>
-        <div class="card-body">
-            <form action="/add_user" method="POST">
-                <div class="form-group">
-                    <label for="name">Name</label>
-                    <input type="text" class="form-control" id="name" name="name" placeholder="Enter name" required>
-                </div>
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" class="form-control" id="username" name="username" placeholder="Enter username" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required>
-                </div>
-                <button type="submit" class="btn btn-success">Add User</button>
-            </form>
-        </div>
-    </div>
-</div>
-
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

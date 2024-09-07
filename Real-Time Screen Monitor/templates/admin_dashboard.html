@@ -4,134 +4,114 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         body {
-            background-color: #e9eef2;
-            font-family: Arial, sans-serif;
+            background-color: #f7f9fc;
         }
-        .container {
-            margin: 50px auto;
-            padding: 20px;
-            max-width: 800px;
-            background-color: #f7f9fb;
-            border: 1px solid #d1d8de;
-            border-radius: 8px;
+        .dashboard-container {
+            margin-top: 50px;
         }
-        h1 {
-            color: #0056b3;
+        .dashboard-title {
             font-size: 28px;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 30px;
         }
-        h3 {
-            color: #333;
-            font-size: 20px;
-            margin-top: 30px;
+        .users-table {
+            margin-bottom: 30px;
         }
-        ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        li {
-            background-color: #ffffff;
-            margin-bottom: 10px;
+        .users-table th, .users-table td {
+            text-align: left;
             padding: 10px;
-            border-radius: 4px;
-            border: 1px solid #d1d8de;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
-        .user-details {
-            display: inline-block;
-        }
-        button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            text-decoration: none;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        form {
-            display: inline-block;
-            margin: 0;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            color: #333;
-        }
-        input[type="text"], input[type="password"] {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ced4da;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        .btn-submit {
-            background-color: #28a745;
-            color: white;
-            padding: 10px 16px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            width: 100%;
-        }
-        .btn-submit:hover {
-            background-color: #218838;
-        }
-        .btn-view {
+        .btn-primary {
             background-color: #17a2b8;
-            margin-right: 10px;
-        }
-        .btn-view:hover {
-            background-color: #138496;
+            border-color: #17a2b8;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Admin Dashboard</h1>
-        <h3>Live Users</h3>
-        <ul>
-            {% for user in users %}
-                <li>
-                    <div class="user-details">
-                        <strong>{{ user.username }}</strong> - Password: {{ user.password }} 
-                        - {% if user.connected %} Connected {% else %} Disconnected {% endif %}
-                    </div>
-                    <form action="/view_screen/{{ user.username }}" method="GET" style="display: inline;">
-                        <button class="btn btn-view" {% if not user.connected %} disabled {% endif %}>View Screen</button>
-                    </form>
-                    <form action="/delete_user/{{ user.id }}" method="POST" style="display: inline;">
-                        <button class="btn btn-danger btn-sm">Delete</button>
-                    </form>
-                </li>
-            {% endfor %}
-        </ul>
 
-        <h3>Add New User</h3>
-        <form action="/add_user" method="POST">
-            <div class="form-group">
-                <label for="name">Name</label>
-                <input type="text" id="name" name="name" required>
-            </div>
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <button type="submit" class="btn-submit">Add User</button>
-        </form>
+<div class="container dashboard-container">
+    <h1 class="dashboard-title">Admin Dashboard</h1>
+    
+    <!-- Section for Live Users -->
+    <div class="card mb-4">
+        <div class="card-header">
+            Live Users
+        </div>
+        <div class="card-body">
+            {% if live_users %}
+                {% for username, user_data in live_users.items() %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>{{ username }} - Password: {{ user_data.password }} - Connected</span>
+                        <div>
+                            <a href="/view_screen/{{ username }}" class="btn btn-info">View Screen</a>
+                            <a href="/disconnect_user/{{ username }}" class="btn btn-danger">Disconnect</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No live users connected.</p>
+            {% endif %}
+        </div>
     </div>
+
+    <!-- Section for All Users -->
+    <div class="card mb-4">
+        <div class="card-header">
+            Users
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered users-table">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Name</th>
+                        <th>Username</th>
+                        <th>Password</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.name }}</td>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.password }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Section to Add New User -->
+    <div class="card">
+        <div class="card-header">
+            Add New User
+        </div>
+        <div class="card-body">
+            <form action="/add_user" method="POST">
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" class="form-control" id="name" name="name" placeholder="Enter name" required>
+                </div>
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" class="form-control" id="username" name="username" placeholder="Enter username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required>
+                </div>
+                <button type="submit" class="btn btn-success">Add User</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

@@ -1,9 +1,10 @@
-from flask import Flask, render_template, request, redirect, Response
+from flask import Flask, render_template, request, redirect, Response, flash
 import cv2
 import numpy as np
 from datetime import datetime
 
 app = Flask(__name__)
+app.secret_key = 'supersecretkey'  # Required for flashing messages
 
 # Admin credentials
 admin_credentials = {
@@ -28,12 +29,15 @@ def handle_login():
     if username == admin_credentials['username'] and password == admin_credentials['password']:
         return redirect('/admin_dashboard')
 
-    # Check if user exists in memory and validate credentials
-    user = users.get(username)
-    if user and user['password'] == password:
+    # Check if user exists
+    user = next((u for u in users if u['username'] == username and u['password'] == password), None)
+    
+    if user:
         return redirect(f'/employee_dashboard/{username}')
+    else:
+        # Pass an error message back to the login page
+        return render_template('login.html', message="Invalid username or password. Please try again.")
 
-    return "Invalid credentials"
 
 @app.route('/admin_dashboard')
 def admin_dashboard():

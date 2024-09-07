@@ -1,16 +1,10 @@
-from xvfbwrapper import Xvfb
-from flask import Flask, render_template, request, redirect, Response, jsonify
+from flask import Flask, render_template, request, redirect, Response
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import pyautogui
 import cv2
 import numpy as np
 from datetime import datetime
-import os
-
-# Start a virtual display (Xvfb) for headless environments
-vdisplay = Xvfb()
-vdisplay.start()
 
 app = Flask(__name__)
 
@@ -69,15 +63,8 @@ def employee_dashboard(username):
     user = User.query.filter_by(username=username).first()
     return render_template('employee_dashboard.html', user=user)
 
-# Function to detect if the environment is a server without display
-def is_server():
-    return "RENDER" in os.environ or "DISPLAY" not in os.environ
-
 # Function to capture and stream the screen
 def generate_video_stream():
-    if is_server():
-        return "Cannot capture screen in server environment."
-
     while True:
         screenshot = pyautogui.screenshot()
         frame = np.array(screenshot)
@@ -135,7 +122,4 @@ def delete_user(user_id):
     return redirect('/admin_dashboard')
 
 if __name__ == "__main__":
-    try:
-        app.run(debug=True)
-    finally:
-        vdisplay.stop()  # Ensure to stop the virtual display when done
+    app.run(debug=True)

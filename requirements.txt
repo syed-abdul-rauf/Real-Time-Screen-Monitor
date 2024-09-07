@@ -4,4 +4,4 @@ flask_migrate
 pyautogui
 opencv-python
 numpy
-Xvfbwrapper
+gunicorn

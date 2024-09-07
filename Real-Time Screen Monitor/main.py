@@ -1,5 +1,4 @@
-from flask import Flask, render_template, request, redirect, Response, jsonify
-import pyautogui
+from flask import Flask, render_template, request, redirect, Response
 import cv2
 import numpy as np
 from datetime import datetime
@@ -45,12 +44,11 @@ def employee_dashboard(username):
     user = users.get(username)
     return render_template('employee_dashboard.html', user=user)
 
-# Function to capture and stream the screen
+# Dummy function to simulate generating video stream
 def generate_video_stream():
     while True:
-        screenshot = pyautogui.screenshot()
-        frame = np.array(screenshot)
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        # Simulate sending video stream
+        frame = np.zeros((480, 640, 3), dtype=np.uint8)
         ret, jpeg = cv2.imencode('.jpg', frame)
         if not ret:
             continue

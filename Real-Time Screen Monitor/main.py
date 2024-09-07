@@ -5,6 +5,10 @@ import numpy as np
 from datetime import datetime
 from xvfbwrapper import Xvfb
 
+# Start virtual display for pyautogui in a headless environment
+vdisplay = Xvfb()
+vdisplay.start()
+
 app = Flask(__name__)
 
 # Admin credentials
@@ -15,9 +19,6 @@ admin_credentials = {
 
 # Dictionary to store connected users
 live_users = {}
-
-vdisplay = Xvfb()
-vdisplay.start()  # Start virtual display for pyautogui to work in headless environments
 
 @app.route('/')
 def login():
@@ -80,14 +81,10 @@ def disconnect_user():
 
 @app.route('/add_user', methods=['POST'])
 def add_user():
-    # Since no user database, we're not actually adding a user.
-    # This is just a placeholder.
     return redirect('/admin_dashboard')
 
 @app.route('/delete_user/<username>', methods=['POST'])
 def delete_user(username):
-    # Since no user database, we can't delete an actual user.
-    # This is just a placeholder.
     live_users.pop(username, None)
     return redirect('/admin_dashboard')
 

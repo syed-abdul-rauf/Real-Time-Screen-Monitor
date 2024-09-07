@@ -5,4 +5,4 @@ pyautogui
 opencv-python
 numpy
 gunicorn
-xvfbwrapper
+xvfbwrapper==0.2.9

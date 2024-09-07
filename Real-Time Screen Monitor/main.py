@@ -5,6 +5,7 @@ import pyautogui
 import cv2
 import numpy as np
 from datetime import datetime
+from xvfbwrapper import Xvfb
 
 app = Flask(__name__)
 
@@ -34,6 +35,9 @@ class User(db.Model):
 # Dictionary to store connected users
 live_users = {}
 
+vdisplay = Xvfb()
+vdisplay.start()  # Start virtual display for pyautogui to work in headless environments
+
 @app.route('/')
 def login():
     return render_template('login.html')
@@ -46,11 +50,11 @@ def handle_login():
     # Check admin credentials
     if username == admin_credentials['username'] and password == admin_credentials['password']:
         return redirect('/admin_dashboard')
-    
+
     user = User.query.filter_by(username=username).first()
     if user and user.password == password:
         return redirect(f'/employee_dashboard/{username}')
-    
+
     return "Invalid credentials"
 
 @app.route('/admin_dashboard')

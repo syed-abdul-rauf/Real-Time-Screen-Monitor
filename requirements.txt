@@ -5,3 +5,4 @@ pyautogui
 opencv-python
 numpy
 gunicorn
+xvfbwrapper

@@ -5,3 +5,4 @@ gunicorn
 xvfbwrapper==0.2.9
 pyautogui
 flask_sqlalchemy
+pyvirtualdisplay

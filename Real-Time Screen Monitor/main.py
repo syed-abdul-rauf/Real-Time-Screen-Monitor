@@ -3,8 +3,6 @@ import pyautogui
 import cv2
 import numpy as np
 from datetime import datetime
-import os
-import json
 
 app = Flask(__name__)
 
@@ -15,23 +13,8 @@ admin_credentials = {
 }
 
 # In-memory storage for users
-users = []
+users = {}
 live_users = {}
-
-# Load users from a file if it exists
-def load_users():
-    global users
-    if os.path.exists('users.json'):
-        with open('users.json', 'r') as file:
-            users = json.load(file)
-
-# Save users to a file
-def save_users():
-    with open('users.json', 'w') as file:
-        json.dump(users, file)
-
-# Load users at the start of the application
-load_users()
 
 @app.route('/')
 def login():
@@ -45,11 +28,11 @@ def handle_login():
     # Check admin credentials
     if username == admin_credentials['username'] and password == admin_credentials['password']:
         return redirect('/admin_dashboard')
-
+    
     # Check user credentials
-    for user in users:
-        if user['username'] == username and user['password'] == password:
-            return redirect(f'/employee_dashboard/{username}')
+    user = users.get(username)  # Retrieve the user from the dictionary
+    if user and user['password'] == password:
+        return redirect(f'/employee_dashboard/{username}')
     
     # If credentials are incorrect, show an error message on the login page
     return render_template('login.html', error="Invalid username or password")
@@ -60,9 +43,9 @@ def admin_dashboard():
 
 @app.route('/employee_dashboard/<username>')
 def employee_dashboard(username):
-    for user in users:
-        if user['username'] == username:
-            return render_template('employee_dashboard.html', user=user)
+    user = users.get(username)
+    if user:
+        return render_template('employee_dashboard.html', user=user)
     return "User not found", 404
 
 # Function to capture and stream the screen
@@ -80,31 +63,25 @@ def generate_video_stream():
 @app.route('/view_screen/<username>')
 def view_screen(username):
     if username in live_users:
-        # Live stream the user's screen
         return Response(generate_video_stream(), mimetype='multipart/x-mixed-replace; boundary=frame')
     return "User is not connected."
 
 @app.route('/connect_user', methods=['POST'])
 def connect_user():
     username = request.form.get('username')
-    for user in users:
-        if user['username'] == username:
-            user['connected'] = True
-            user['connect_time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            live_users[username] = user
-            save_users()
+    if username in users:
+        users[username]['connected'] = True
+        users[username]['connect_time'] = datetime.now()
+        live_users[username] = True
     return redirect(f'/employee_dashboard/{username}')
 
 @app.route('/disconnect_user', methods=['POST'])
 def disconnect_user():
     username = request.form.get('username')
-    if username in live_users:
+    if username in users:
+        users[username]['connected'] = False
+        users[username]['disconnect_time'] = datetime.now()
         live_users.pop(username, None)
-    for user in users:
-        if user['username'] == username:
-            user['connected'] = False
-            user['disconnect_time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            save_users()
     return redirect(f'/employee_dashboard/{username}')
 
 @app.route('/add_user', methods=['POST'])
@@ -112,22 +89,19 @@ def add_user():
     name = request.form.get('name')
     username = request.form.get('username')
     password = request.form.get('password')
-
-    # Add user to the users list
-    new_user = {
-        'name': name,
-        'username': username,
-        'password': password,
-        'connected': False,
-        'connect_time': None,
-        'disconnect_time': None
-    }
-
-    # Ensure that we are not adding duplicate users
-    if not any(user['username'] == username for user in users):
-        users.append(new_user)
-        save_users()
+    
+    # Ensure the users dictionary is updated
+    if username not in users:
+        users[username] = {
+            'name': name,
+            'username': username,
+            'password': password,
+            'connected': False,
+            'connect_time': None,
+            'disconnect_time': None
+        }
     return redirect('/admin_dashboard')
+
 
 if __name__ == "__main__":
     app.run(debug=True)

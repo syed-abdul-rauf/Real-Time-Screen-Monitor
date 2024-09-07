@@ -1,7 +1,7 @@
 Flask
-gunicorn
-flask-socketio
-pyodbc
+flask_sqlalchemy
+flask_migrate
+pyautogui
 opencv-python
 numpy
-pyautogui
+Xvfbwrapper

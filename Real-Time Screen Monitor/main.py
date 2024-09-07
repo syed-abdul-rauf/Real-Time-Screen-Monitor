@@ -3,9 +3,9 @@ import pyautogui
 import cv2
 import numpy as np
 from datetime import datetime
-from xvfbwrapper import Xvfb
+from xvfbwrapper import Xvfb  # Import Xvfb for virtual display in headless environments
 
-# Start virtual display for pyautogui in a headless environment
+# Start a virtual display (for headless environments like Render)
 vdisplay = Xvfb()
 vdisplay.start()
 
@@ -33,21 +33,18 @@ def handle_login():
     if username == admin_credentials['username'] and password == admin_credentials['password']:
         return redirect('/admin_dashboard')
 
-    # Since no user database, let's just mock a user login
-    if username == "user" and password == "password":  # Mocking a generic user
-        return redirect(f'/employee_dashboard/{username}')
-
     return "Invalid credentials"
 
 @app.route('/admin_dashboard')
 def admin_dashboard():
-    # Simulate live users for the dashboard
-    return render_template('admin_dashboard.html', live_users=live_users)
+    users = live_users.keys()
+    return render_template('admin_dashboard.html', users=users, live_users=live_users)
 
 @app.route('/employee_dashboard/<username>')
 def employee_dashboard(username):
-    # Display user-specific dashboard (no database data)
-    return render_template('employee_dashboard.html', username=username)
+    if username in live_users:
+        return render_template('employee_dashboard.html', username=username)
+    return "User not connected."
 
 # Function to capture and stream the screen
 def generate_video_stream():
@@ -70,7 +67,7 @@ def view_screen(username):
 @app.route('/connect_user', methods=['POST'])
 def connect_user():
     username = request.form.get('username')
-    live_users[username] = {'connected': True, 'connect_time': datetime.now()}
+    live_users[username] = True
     return redirect(f'/employee_dashboard/{username}')
 
 @app.route('/disconnect_user', methods=['POST'])
@@ -78,15 +75,6 @@ def disconnect_user():
     username = request.form.get('username')
     live_users.pop(username, None)
     return redirect(f'/employee_dashboard/{username}')
-
-@app.route('/add_user', methods=['POST'])
-def add_user():
-    return redirect('/admin_dashboard')
-
-@app.route('/delete_user/<username>', methods=['POST'])
-def delete_user(username):
-    live_users.pop(username, None)
-    return redirect('/admin_dashboard')
 
 if __name__ == "__main__":
     app.run(debug=True)

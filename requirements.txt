@@ -1,8 +1,6 @@
-Flask
-flask_sqlalchemy
-flask_migrate
-pyautogui
+Flask==3.0.3
 opencv-python
 numpy
 gunicorn
 xvfbwrapper==0.2.9
+pyautogui

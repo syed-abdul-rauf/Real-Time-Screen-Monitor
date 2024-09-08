@@ -136,7 +136,7 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
-@app.errorhandler(500)
+@app.errorhandler(500)      
 def internal_error(error):
     return render_template('error.html', error=error), 500
 

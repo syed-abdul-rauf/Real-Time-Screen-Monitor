@@ -127,7 +127,7 @@ def generate_video_stream():
 def view_screen(username):
     # You can add logic to check if the user is connected before streaming their screen
     if pyautogui is None:
-        return "Screen capture is not available in this environment."
+        return "Screen capture is not available, in this environment."
     
     return Response(generate_video_stream(), mimetype='multipart/x-mixed-replace; boundary=frame')
 

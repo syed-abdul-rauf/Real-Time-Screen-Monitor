@@ -18,7 +18,7 @@ app.config['SESSION_TYPE'] = 'filesystem'
 Session(app)
 
 # Database connection using PostgreSQL on Render
-host = 'dpg-cren3f5svqrc73fk7n0-a.oregon-postgres.render.com'
+host = 'realtime_screenmonitor_db.render.com'
 port = '5432'
 database = 'realtime_screenmonitor_db'
 username = 'root'

@@ -14,9 +14,12 @@ else:
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'  # Replace this with a secure random value
-app.config['SESSION_TYPE'] = 'filesystem'
-app.config['SESSION_COOKIE_NAME'] = 'flask_session'  # Explicitly set session cookie name
-Session(app)
+app.config['SESSION_TYPE'] = 'filesystem'  # Using filesystem to store sessions
+app.config['SESSION_PERMANENT'] = False
+app.config['SESSION_USE_SIGNER'] = True
+app.config['SESSION_KEY_PREFIX'] = 'sess:'
+
+Session(app)  # Initialize session
 
 # Database connection using PostgreSQL on Render
 host = 'dpg-cren3f5svqrc73fkr7n0-a.oregon-postgres.render.com'

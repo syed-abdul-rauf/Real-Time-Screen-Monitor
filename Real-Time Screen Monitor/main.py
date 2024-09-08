@@ -80,11 +80,15 @@ def login():
 
 @app.route('/admin_dashboard')
 def admin_dashboard():
-    if not session.get('is_admin'):
-        return redirect(url_for('login'))
-    cursor.execute("SELECT ID, Name, Username, IsConnected FROM Users")
-    users = cursor.fetchall()
-    return render_template('admin_dashboard.html', users=users)
+    try:
+        if not session.get('is_admin'):
+            return redirect(url_for('login'))
+        cursor.execute("SELECT ID, Name, Username, IsConnected FROM Users")
+        users = cursor.fetchall()
+        return render_template('admin_dashboard.html', users=users)
+    except Exception as e:
+        print(f"Error in admin_dashboard: {e}")
+        return render_template('error.html', error="Failed to load admin dashboard")
 
 @app.route('/employee_dashboard')
 def employee_dashboard():

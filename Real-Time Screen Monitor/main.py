@@ -1,10 +1,16 @@
 from flask import Flask, render_template, request, redirect, session, url_for, Response
 import cv2
-import pyautogui
 import numpy as np
+import os
 from flask_session import Session
 from werkzeug.security import generate_password_hash, check_password_hash
 import psycopg2
+
+# Import pyautogui only if we are not in a headless environment
+if 'DISPLAY' in os.environ:
+    import pyautogui
+else:
+    pyautogui = None
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'  # Replace this with a secure random value
@@ -91,8 +97,12 @@ def add_user():
     conn.commit()
     return redirect(url_for('admin_dashboard'))
 
-# Function to generate frames for screen capture
+# Function to generate frames for screen capture (only works in non-headless environments)
 def generate_video_stream():
+    if pyautogui is None:
+        print("pyautogui is not available in this environment (likely headless).")
+        return b''
+
     while True:
         screenshot = pyautogui.screenshot()  # Capture screenshot
         frame = np.array(screenshot)  # Convert the screenshot to a numpy array
@@ -104,10 +114,13 @@ def generate_video_stream():
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n\r\n')
 
-# Route to view the screen of a user in real-time
+# Route to view the screen of a user in real-time (only works in non-headless environments)
 @app.route('/view_screen/<username>')
 def view_screen(username):
     # You can add logic to check if the user is connected before streaming their screen
+    if pyautogui is None:
+        return "Screen capture is not available in this environment."
+    
     return Response(generate_video_stream(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/logout')

@@ -13,7 +13,7 @@ Session(app)
 
 # Database connection using Windows Authentication
 server = 'LAPTOP-ECFADG26\\SQLEXPRESS'
-database = 'Screen_Monitor'
+database = 'realtime_screenmonitor_db'
 cnxn = pyodbc.connect(f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={server};DATABASE={database};Trusted_Connection=yes;')
 cursor = cnxn.cursor()
 

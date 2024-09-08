@@ -11,3 +11,4 @@ numpy
 pyautogui
 cv2
 pyodbc
+pyvirtualdisplay

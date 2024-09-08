@@ -1,107 +1,108 @@
-from flask import Flask, render_template, request, redirect, Response, jsonify
-import pyautogui
+from flask import Flask, render_template, request, redirect, session, url_for, Response
 import cv2
+import pyautogui
 import numpy as np
-from datetime import datetime
+from flask_session import Session
+from werkzeug.security import generate_password_hash, check_password_hash
+import pyodbc
 
 app = Flask(__name__)
+app.secret_key = 'your_secret_key_here'  # Replace this with a secure random value
+app.config['SESSION_TYPE'] = 'filesystem'
+Session(app)
 
-# Admin credentials
-admin_credentials = {
-    'username': 'admin',
-    'password': 'adminpassword'
-}
+# Database connection using Windows Authentication
+server = 'LAPTOP-ECFADG26\\SQLEXPRESS'
+database = 'Screen_Monitor'
+cnxn = pyodbc.connect(f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={server};DATABASE={database};Trusted_Connection=yes;')
+cursor = cnxn.cursor()
 
-# In-memory storage for users
-users = {}
-live_users = {}
+# Hardcoded admin credentials
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "123"
 
 @app.route('/')
+def home():
+    return redirect(url_for('login'))
+
+@app.route('/login', methods=['GET', 'POST'])
 def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        # Check hardcoded admin credentials first
+        if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+            session['user_id'] = -1  # -1 can represent the admin in this simple case
+            session['username'] = username
+            session['is_admin'] = True
+            return redirect(url_for('admin_dashboard'))
+
+        # Check regular users in the database
+        cursor.execute("SELECT ID, Username, Password, IsAdmin FROM Users WHERE Username = ?", username)
+        user = cursor.fetchone()
+        if user and check_password_hash(user[2], password):
+            session['user_id'] = user[0]
+            session['username'] = user[1]
+            session['is_admin'] = user[3]
+            if user[3]:  # If the user is also an admin
+                return redirect(url_for('admin_dashboard'))
+            else:
+                return redirect(url_for('employee_dashboard'))
+        else:
+            return render_template('login.html', error="Invalid username or password")
     return render_template('login.html')
-
-@app.route('/login', methods=['POST'])
-def handle_login():
-    username = request.form.get('username')
-    password = request.form.get('password')
-
-    # Check admin credentials
-    if username == admin_credentials['username'] and password == admin_credentials['password']:
-        return redirect('/admin_dashboard')
-    
-    # Check user credentials
-    user = users.get(username)  # Retrieve the user from the dictionary
-    if user and user['password'] == password:
-        return redirect(f'/employee_dashboard/{username}')
-    
-    # If credentials are incorrect, show an error message on the login page
-    return render_template('login.html', error="Invalid username or password")
 
 @app.route('/admin_dashboard')
 def admin_dashboard():
-    return render_template('admin_dashboard.html', users=users, live_users=live_users)
+    if not session.get('is_admin'):
+        return redirect(url_for('login'))
+    cursor.execute("SELECT ID, Name, Username, IsConnected FROM Users")
+    users = cursor.fetchall()
+    return render_template('admin_dashboard.html', users=users)
 
-@app.route('/employee_dashboard/<username>')
-def employee_dashboard(username):
-    user = users.get(username)
-    if user:
-        return render_template('employee_dashboard.html', user=user)
-    return "User not found", 404
-
-# Function to capture and stream the screen
-def generate_video_stream():
-    while True:
-        screenshot = pyautogui.screenshot()
-        frame = np.array(screenshot)
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        ret, jpeg = cv2.imencode('.jpg', frame)
-        if not ret:
-            continue
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n\r\n')
-
-@app.route('/view_screen/<username>')
-def view_screen(username):
-    if username in live_users:
-        return Response(generate_video_stream(), mimetype='multipart/x-mixed-replace; boundary=frame')
-    return "User is not connected."
-
-@app.route('/connect_user', methods=['POST'])
-def connect_user():
-    username = request.form.get('username')
-    if username in users:
-        users[username]['connected'] = True
-        users[username]['connect_time'] = datetime.now()
-        live_users[username] = True
-    return redirect(f'/employee_dashboard/{username}')
-
-@app.route('/disconnect_user', methods=['POST'])
-def disconnect_user():
-    username = request.form.get('username')
-    if username in users:
-        users[username]['connected'] = False
-        users[username]['disconnect_time'] = datetime.now()
-        live_users.pop(username, None)
-    return redirect(f'/employee_dashboard/{username}')
+@app.route('/employee_dashboard')
+def employee_dashboard():
+    if not session.get('username'):
+        return redirect(url_for('login'))
+    cursor.execute("SELECT ID, Name, Username FROM Users WHERE Username = ?", session['username'])
+    user = cursor.fetchone()
+    return render_template('employee_dashboard.html', user=user)
 
 @app.route('/add_user', methods=['POST'])
 def add_user():
-    name = request.form.get('name')
-    username = request.form.get('username')
-    password = request.form.get('password')
-    
-    # Ensure the users dictionary is updated
-    if username not in users:
-        users[username] = {
-            'name': name,
-            'username': username,
-            'password': password,
-            'connected': False,
-            'connect_time': None,
-            'disconnect_time': None
-        }
-    return redirect('/admin_dashboard')
+    if not session.get('is_admin'):
+        return redirect(url_for('login'))
+    name = request.form['name']
+    username = request.form['username']
+    password = generate_password_hash(request.form['password'])
+    cursor.execute("INSERT INTO Users (Name, Username, Password, IsConnected) VALUES (?, ?, ?, 0)", (name, username, password))
+    cnxn.commit()
+    return redirect(url_for('admin_dashboard'))
 
+# Function to generate frames for screen capture
+def generate_video_stream():
+    while True:
+        screenshot = pyautogui.screenshot()  # Capture screenshot
+        frame = np.array(screenshot)  # Convert the screenshot to a numpy array
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)  # Convert RGB to BGR for OpenCV compatibility
+        ret, jpeg = cv2.imencode('.jpg', frame)  # Encode frame as JPEG
+        if not ret:
+            continue
+        # Return the frame as a byte stream for display
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n\r\n')
+
+# Route to view the screen of a user in real-time
+@app.route('/view_screen/<username>')
+def view_screen(username):
+    # You can add logic to check if the user is connected before streaming their screen
+    return Response(generate_video_stream(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
 
 if __name__ == "__main__":
     app.run(debug=True)

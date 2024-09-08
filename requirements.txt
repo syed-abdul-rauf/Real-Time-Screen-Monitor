@@ -5,3 +5,9 @@ gunicorn
 xvfbwrapper==0.2.9
 pyautogui
 flask_sqlalchemy
+werkzeug.security
+flask_session
+numpy
+pyautogui
+cv2
+pyodbc

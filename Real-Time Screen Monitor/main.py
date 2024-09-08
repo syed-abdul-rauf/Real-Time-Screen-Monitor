@@ -15,6 +15,7 @@ else:
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'  # Replace this with a secure random value
 app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_COOKIE_NAME'] = 'flask_session'  # Explicitly set session cookie name
 Session(app)
 
 # Database connection using PostgreSQL on Render

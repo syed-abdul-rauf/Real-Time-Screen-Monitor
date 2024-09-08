@@ -14,13 +14,17 @@ else:
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'  # Replace this with a secure random value
-app.config['SESSION_TYPE'] = 'filesystem'  # Using filesystem to store sessions
-app.config['SESSION_COOKIE_NAME'] = 'my_session_cookie'  # Set the session cookie name explicitly
-app.config['SESSION_PERMANENT'] = False
-app.config['SESSION_USE_SIGNER'] = True
-app.config['SESSION_KEY_PREFIX'] = 'sess:'
 
-Session(app)  # Initialize session
+# Session configurations
+app.config['SESSION_TYPE'] = 'filesystem'  # Use filesystem to store sessions
+app.config['SESSION_COOKIE_NAME'] = 'session'
+app.config['SESSION_PERMANENT'] = False  # Non-permanent sessions
+app.config['SESSION_USE_SIGNER'] = True  # Sign the session cookie for security
+Session(app)
+
+# Alternative: Use NullSessionInterface in headless environments
+# from flask.sessions import NullSessionInterface
+# app.session_interface = NullSessionInterface()
 
 # Database connection using PostgreSQL on Render
 host = 'dpg-cren3f5svqrc73fkr7n0-a.oregon-postgres.render.com'

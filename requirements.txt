@@ -1,7 +1,7 @@
-Flask==2.0.1
+Flask==2.3.2
 Flask-Session==0.4.0
-pyodbc==4.0.32
-pyautogui==0.9.53
-numpy==1.22.0 
-opencv-python==4.5.3.56
-Werkzeug==2.0.1
+psycopg2==2.9.6
+Werkzeug==2.3.6
+opencv-python==4.8.0.76
+pyautogui==0.9.55
+numpy==1.23.5

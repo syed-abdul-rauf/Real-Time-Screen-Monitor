@@ -4,18 +4,29 @@ import pyautogui
 import numpy as np
 from flask_session import Session
 from werkzeug.security import generate_password_hash, check_password_hash
-import pyodbc
+import psycopg2
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'  # Replace this with a secure random value
 app.config['SESSION_TYPE'] = 'filesystem'
 Session(app)
 
-# Database connection using Windows Authentication
-server = 'LAPTOP-ECFADG26\\SQLEXPRESS'
+# Database connection using PostgreSQL on Render
+host = 'dpg-cren3f5svqrc73fk7n0-a'
+port = '5432'
 database = 'realtime_screenmonitor_db'
-cnxn = pyodbc.connect(f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={server};DATABASE={database};Trusted_Connection=yes;')
-cursor = cnxn.cursor()
+username = 'root'
+password = 'tu4nzc3K4FNTH2XWRYj3qQ3bNnjIqzXJ'
+
+# Establish connection with PostgreSQL
+conn = psycopg2.connect(
+    host=host,
+    port=port,
+    dbname=database,
+    user=username,
+    password=password
+)
+cursor = conn.cursor()
 
 # Hardcoded admin credentials
 ADMIN_USERNAME = "admin"
@@ -39,7 +50,7 @@ def login():
             return redirect(url_for('admin_dashboard'))
 
         # Check regular users in the database
-        cursor.execute("SELECT ID, Username, Password, IsAdmin FROM Users WHERE Username = ?", username)
+        cursor.execute("SELECT ID, Username, Password, IsAdmin FROM Users WHERE Username = %s", (username,))
         user = cursor.fetchone()
         if user and check_password_hash(user[2], password):
             session['user_id'] = user[0]
@@ -65,7 +76,7 @@ def admin_dashboard():
 def employee_dashboard():
     if not session.get('username'):
         return redirect(url_for('login'))
-    cursor.execute("SELECT ID, Name, Username FROM Users WHERE Username = ?", session['username'])
+    cursor.execute("SELECT ID, Name, Username FROM Users WHERE Username = %s", (session['username'],))
     user = cursor.fetchone()
     return render_template('employee_dashboard.html', user=user)
 
@@ -76,8 +87,8 @@ def add_user():
     name = request.form['name']
     username = request.form['username']
     password = generate_password_hash(request.form['password'])
-    cursor.execute("INSERT INTO Users (Name, Username, Password, IsConnected) VALUES (?, ?, ?, 0)", (name, username, password))
-    cnxn.commit()
+    cursor.execute("INSERT INTO Users (Name, Username, Password, IsConnected) VALUES (%s, %s, %s, 0)", (name, username, password))
+    conn.commit()
     return redirect(url_for('admin_dashboard'))
 
 # Function to generate frames for screen capture

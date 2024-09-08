@@ -5,3 +5,4 @@ Werkzeug==2.3.6
 opencv-python==4.8.0.76
 pyautogui==0.9.54
 numpy==1.23.5
+gunicorn

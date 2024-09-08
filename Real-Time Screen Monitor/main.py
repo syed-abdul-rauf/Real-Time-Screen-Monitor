@@ -83,8 +83,12 @@ def admin_dashboard():
     try:
         if not session.get('is_admin'):
             return redirect(url_for('login'))
+
         cursor.execute("SELECT ID, Name, Username, IsConnected FROM Users")
         users = cursor.fetchall()
+
+        print(f"Fetched users: {users}")  # Log fetched data
+
         return render_template('admin_dashboard.html', users=users)
     except Exception as e:
         print(f"Error in admin_dashboard: {e}")

@@ -29,26 +29,27 @@ database = 'realtime_screenmonitor_db'
 username = 'root'
 password = 'tu4nzc3K4FNTH2XWRYj3qQ3bNnjIqzXJ'
 
-# Establish connection with PostgreSQL
-conn = psycopg2.connect(
-    host=host,
-    port=port,
-    dbname=database,
-    user=username,
-    password=password
-)
-cursor = conn.cursor()
+# Try to establish connection with PostgreSQL
+try:
+    conn = psycopg2.connect(
+        host=host,
+        port=port,
+        dbname=database,
+        user=username,
+        password=password
+    )
+    cursor = conn.cursor()
+except Exception as e:
+    print(f"Error connecting to the database: {e}")
 
 # Hardcoded admin credentials
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "123"
 
-# Redirect root to login page
 @app.route('/')
 def home():
     return redirect(url_for('login'))
 
-# Login route
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -135,5 +136,9 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
+@app.errorhandler(500)
+def internal_error(error):
+    return render_template('error.html', error=error), 500
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0", port=10000)

@@ -23,8 +23,8 @@ app.config['SESSION_USE_SIGNER'] = True
 Session(app)
 
 # SQLAlchemy database setup using PostgreSQL URL
-
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:M%40had100@localhost:5432/realtime_screenmonitor_db'
+# postgresql://root:tu4nzc3K4FNTH2XWRYj3qQ3bNnjIqzXJ@dpg-cren3f5svqrc73fkr7n0-a.oregon-postgres.render.com/realtime_screenmonitor_db
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://root:tu4nzc3K4FNTH2XWRYj3qQ3bNnjIqzXJ@dpg-cren3f5svqrc73fkr7n0-a.oregon-postgres.render.com:5432/realtime_screenmonitor_db'
 
 
 

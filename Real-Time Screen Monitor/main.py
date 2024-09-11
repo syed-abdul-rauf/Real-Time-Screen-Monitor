@@ -24,7 +24,8 @@ Session(app)
 
 # SQLAlchemy database setup using PostgreSQL URL
 
-app.config['SQLALCHEMY_DATABASE_URI'] = r'postgresql://SyedAbdulRauf:simplepassword@localhost:5432/realtime_screenmonitor_db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:M%40had100@localhost:5432/realtime_screenmonitor_db'
+
 
 
 

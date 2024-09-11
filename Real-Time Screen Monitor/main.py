@@ -5,6 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import cv2
 import numpy as np
 import os
+import urllib
 
 # Import pyautogui only if we are not in a headless environment
 if 'DISPLAY' in os.environ:
@@ -22,9 +23,18 @@ app.config['SESSION_PERMANENT'] = False
 app.config['SESSION_USE_SIGNER'] = True
 Session(app)
 
-# SQLAlchemy database setup using PostgreSQL URL
-# postgresql://root:tu4nzc3K4FNTH2XWRYj3qQ3bNnjIqzXJ@dpg-cren3f5svqrc73fkr7n0-a.oregon-postgres.render.com/realtime_screenmonitor_db
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://root:tu4nzc3K4FNTH2XWRYj3qQ3bNnjIqzXJ@dpg-cren3f5svqrc73fkr7n0-a.oregon-postgres.render.com:5432/realtime_screenmonitor_db'
+# Database credentials
+username = 'postgres'
+password = 'M@had100'
+encoded_password = urllib.parse.quote(password)  # URL encode the password
+
+# Database server details
+hostname = 'dpg-cren3f5svqrc73fkr7n0-a.oregon-postgres.render.com'  # Your database host address
+port = 5432  # Standard PostgreSQL port
+database_name = 'realtime_screenmonitor_db'  # Your database name
+
+# Construct the SQLALCHEMY_DATABASE_URI
+app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{username}:{encoded_password}@{hostname}:{port}/{database_name}'
 
 
 

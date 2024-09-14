@@ -1,12 +1,9 @@
 from flask import Flask, render_template, request, redirect, session, url_for, Response
-from flask_sqlalchemy import SQLAlchemy
 from flask_session import Session
-from werkzeug.security import generate_password_hash, check_password_hash
 import cv2
 import numpy as np
 import os
-import urllib
-
+ 
 # Import pyautogui only if we are not in a headless environment
 if 'DISPLAY' in os.environ:
     import pyautogui
@@ -23,40 +20,15 @@ app.config['SESSION_PERMANENT'] = False
 app.config['SESSION_USE_SIGNER'] = True
 Session(app)
 
-# Database credentials
-username = 'postgres'
-password = 'M@had100'
-encoded_password = urllib.parse.quote(password)  # URL encode the password
-
-# Database server details
-hostname = 'dpg-cren3f5svqrc73fkr7n0-a.oregon-postgres.render.com'  # Your database host address
-port = 5432  # Standard PostgreSQL port
-database_name = 'realtime_screenmonitor_db'  # Your database name
-
-# Construct the SQLALCHEMY_DATABASE_URI
-app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{username}:{encoded_password}@{hostname}:{port}/{database_name}'
-
-
-
-
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# Initialize the database
-db = SQLAlchemy(app)
-
-# Database Model for Users
-class User(db.Model):
-    __tablename__ = 'user3'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    username = db.Column(db.String(50), nullable=False, unique=True)
-    password = db.Column(db.String(255), nullable=False)
-    is_connected = db.Column(db.Boolean, default=False)
-    is_admin = db.Column(db.Boolean, default=False)
-
 # Hardcoded admin credentials
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "123"
+
+# You can also hardcode other users if needed
+users = [
+    {'id': 1, 'name': 'Admin', 'username': 'admin', 'password': '123', 'is_admin': True},
+    {'id': 2, 'name': 'John Doe', 'username': 'john', 'password': 'john123', 'is_admin': False}
+]
 
 @app.route('/')
 def home():
@@ -69,24 +41,17 @@ def login():
         password = request.form['password']
 
         # Check hardcoded admin credentials first
-        if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
-            session['user_id'] = -1  # -1 can represent the admin in this simple case
-            session['username'] = username
-            session['is_admin'] = True
-            return redirect(url_for('admin_dashboard'))
+        for user in users:
+            if username == user['username'] and password == user['password']:
+                session['user_id'] = user['id']
+                session['username'] = user['username']
+                session['is_admin'] = user['is_admin']
+                if user['is_admin']:
+                    return redirect(url_for('admin_dashboard'))
+                else:
+                    return redirect(url_for('employee_dashboard'))
 
-        # Check regular users in the database
-        user = User.query.filter_by(username=username).first()
-        if user and check_password_hash(user.password, password):
-            session['user_id'] = user.id
-            session['username'] = user.username
-            session['is_admin'] = user.is_admin
-            if user.is_admin:
-                return redirect(url_for('admin_dashboard'))
-            else:
-                return redirect(url_for('employee_dashboard'))
-        else:
-            return render_template('login.html', error="Invalid username or password")
+        return render_template('login.html', error="Invalid username or password")
     return render_template('login.html')
 
 @app.route('/admin_dashboard')
@@ -95,8 +60,7 @@ def admin_dashboard():
         return redirect(url_for('login'))
 
     try:
-        # Fetch all users
-        users = User.query.all()
+        # Since we're not using a database, you can pass the hardcoded users to the admin dashboard
         return render_template('admin_dashboard.html', users=users)
     except Exception as e:
         print(f"Error loading admin dashboard: {e}")
@@ -106,24 +70,17 @@ def admin_dashboard():
 def employee_dashboard():
     if not session.get('username'):
         return redirect(url_for('login'))
-    
-    user = User.query.filter_by(username=session['username']).first()
-    return render_template('employee_dashboard.html', user=user)
 
-@app.route('/add_user', methods=['POST'])
-def add_user():
-    if not session.get('is_admin'):
-        return redirect(url_for('login'))
+    for user in users:
+        if user['username'] == session['username']:
+            return render_template('employee_dashboard.html', user=user)
     
-    name = request.form['name']
-    username = request.form['username']
-    password = generate_password_hash(request.form['password'])
-    
-    new_user = User(name=name, username=username, password=password)
-    db.session.add(new_user)
-    db.session.commit()
-    
-    return redirect(url_for('admin_dashboard'))
+    return redirect(url_for('login'))
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
 
 # Function to generate frames for screen capture (only works in non-headless environments)
 def generate_video_stream():
@@ -148,11 +105,6 @@ def view_screen(username):
         return "Screen capture is not available in this environment."
     
     return Response(generate_video_stream(), mimetype='multipart/x-mixed-replace; boundary=frame')
-
-@app.route('/logout')
-def logout():
-    session.clear()
-    return redirect(url_for('login'))
 
 @app.errorhandler(500)
 def internal_error(error):

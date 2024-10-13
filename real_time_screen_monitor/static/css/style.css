@@ -1,0 +1,163 @@
+/* General Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f7f6;
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+/* Navigation Bar */
+.navbar {
+    background-color: #004d99;
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.navbar h1 {
+    font-size: 24px;
+    margin: 0;
+}
+
+.navbar a {
+    color: white;
+    text-decoration: none;
+    background-color: #ffcc00;
+    padding: 8px 15px;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.navbar a:hover {
+    background-color: #e6b800;
+}
+
+/* Feed Section */
+.feed {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.feed h2 {
+    color: #004d99;
+    font-size: 26px;
+    margin-bottom: 15px;
+}
+
+/* Post Form */
+#postForm {
+    background-color: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+}
+
+#postForm textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    resize: vertical;
+    font-size: 16px;
+}
+
+#postForm button {
+    padding: 10px 20px;
+    background-color: #004d99;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#postForm button:hover {
+    background-color: #003366;
+}
+
+/* Posts Styling */
+.posts .post {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.posts .post p {
+    margin: 0;
+    font-size: 18px;
+}
+
+.posts .post button {
+    padding: 8px 15px;
+    background-color: #ffcc00;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    margin-top: 10px;
+    margin-right: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.posts .post button:hover {
+    background-color: #e6b800;
+}
+
+.posts .post form {
+    margin-top: 15px;
+}
+
+.posts .post input[type="text"] {
+    padding: 8px;
+    width: 100%;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.posts .post h4 {
+    margin: 20px 0 10px;
+    font-size: 18px;
+    color: #004d99;
+}
+
+/* Comments Styling */
+.posts .comments ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.posts .comments ul li {
+    padding: 5px 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.posts .comments ul li:last-child {
+    border-bottom: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .feed {
+        width: 100%;
+        padding: 0 10px;
+    }
+
+    .navbar {
+        flex-direction: column;
+    }
+
+    .navbar h1 {
+        margin-bottom: 10px;
+    }
+}

@@ -11,7 +11,7 @@
         <h1>Welcome, {{ user['name'] }}!</h1>
         <a href="/logout">Logout</a>
     </div>
-    
+
     <div class="feed">
         <h2>Create a Post</h2>
         <form action="/create_post" method="POST">
@@ -20,20 +20,24 @@
         </form>
 
         <h2>Your Feed</h2>
-        <div class="posts">
+        <div id="posts">
             {% for post in posts %}
-                <div class="post">
+                <div class="post" id="post_{{ post.id }}">
                     <p><strong>{{ post.author }}</strong>: {{ post.content }}</p>
                     <p>Likes: {{ post.likes }} | Dislikes: {{ post.dislikes }}</p>
-                    <a href="/like/{{ loop.index0 }}">Like</a> | 
-                    <a href="/dislike/{{ loop.index0 }}">Dislike</a>
+                    <a href="/like/{{ post.id }}">Like</a>
+                    <a href="/dislike/{{ post.id }}">Dislike</a>
 
-                    <form action="/comment/{{ loop.index0 }}" method="POST" class="comment-form">
+                    <!-- Show delete button only if the logged-in user is the author -->
+                    {% if post.author == user['name'] %}
+                        <a href="/delete/{{ post.id }}" class="delete-button">Delete</a>
+                    {% endif %}
+
+                    <form action="/comment/{{ post.id }}" method="POST">
                         <input type="text" name="comment" placeholder="Write a comment..." required>
                         <button type="submit">Comment</button>
                     </form>
-
-                    <div class="comments">
+                    <div>
                         <h4>Comments:</h4>
                         <ul>
                             {% for comment in post.comments %}

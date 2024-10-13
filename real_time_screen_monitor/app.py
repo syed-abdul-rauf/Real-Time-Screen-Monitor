@@ -1,37 +1,12 @@
-from flask import Flask, render_template, request, redirect, url_for, session
-import json
-import os
+from flask import Flask, render_template, request, session, redirect, url_for
 
+# Initialize the Flask application
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
-# Path to the JSON file where user and post data will be saved
-USER_DATA_FILE = 'users.json'
-POST_DATA_FILE = 'posts.json'
-
-# Load user data from the JSON file
-def load_users():
-    if os.path.exists(USER_DATA_FILE):
-        with open(USER_DATA_FILE, 'r') as file:
-            return json.load(file)
-    return {}
-
-# Save user data to the JSON file
-def save_users(users):
-    with open(USER_DATA_FILE, 'w') as file:
-        json.dump(users, file, indent=4)
-
-# Load posts from the JSON file
-def load_posts():
-    if os.path.exists(POST_DATA_FILE):
-        with open(POST_DATA_FILE, 'r') as file:
-            return json.load(file)
-    return []
-
-# Save posts to the JSON file
-def save_posts(posts):
-    with open(POST_DATA_FILE, 'w') as file:
-        json.dump(posts, file, indent=4)
+# In-memory storage for posts and users (simulating data without a database)
+users = {}
+posts = []
 
 # Signup route
 @app.route('/signup', methods=['GET', 'POST'])
@@ -41,16 +16,10 @@ def signup():
         password = request.form['password']
         name = request.form['name']
 
-        users = load_users()
-
         if username in users:
             return "Username already exists!"
         else:
-            # Save the new user to the JSON file
             users[username] = {"password": password, "name": name}
-            save_users(users)
-
-            # Automatically log in the user after signup
             session['username'] = username
             return redirect(url_for('feed'))
 
@@ -63,8 +32,6 @@ def login():
         username = request.form['username']
         password = request.form['password']
 
-        users = load_users()
-
         if username in users and users[username]['password'] == password:
             session['username'] = username
             return redirect(url_for('feed'))
@@ -73,64 +40,76 @@ def login():
 
     return render_template('index.html')
 
-# Feed route (protected, only accessible when logged in)
-@app.route('/feed', methods=['GET', 'POST'])
+# Feed route (protected)
+@app.route('/feed')
 def feed():
     if 'username' in session:
-        user = load_users()[session['username']]
-        posts = load_posts()
+        user = users[session['username']]
         return render_template('feed.html', user=user, posts=posts)
     return redirect(url_for('login'))
 
-# Create post route
+# Handle post creation
 @app.route('/create_post', methods=['POST'])
 def create_post():
     if 'username' in session:
+        user = users[session['username']]
         content = request.form['content']
-        user = load_users()[session['username']]
-
-        posts = load_posts()
         new_post = {
             "author": user['name'],
             "content": content,
             "likes": 0,
             "dislikes": 0,
-            "comments": []
+            "comments": [],
+            "id": len(posts)
         }
         posts.append(new_post)
-        save_posts(posts)
         return redirect(url_for('feed'))
     return redirect(url_for('login'))
 
-# Like post route
-@app.route('/like/<int:post_id>', methods=['GET'])
+# Handle post likes
+@app.route('/like/<int:post_id>')
 def like_post(post_id):
-    posts = load_posts()
-    posts[post_id]['likes'] += 1
-    save_posts(posts)
-    return redirect(url_for('feed'))
+    if 'username' in session:
+        posts[post_id]['likes'] += 1
+        return redirect(url_for('feed'))
+    return redirect(url_for('login'))
 
-# Dislike post route
-@app.route('/dislike/<int:post_id>', methods=['GET'])
+# Handle post dislikes
+@app.route('/dislike/<int:post_id>')
 def dislike_post(post_id):
-    posts = load_posts()
-    posts[post_id]['dislikes'] += 1
-    save_posts(posts)
-    return redirect(url_for('feed'))
+    if 'username' in session:
+        posts[post_id]['dislikes'] += 1
+        return redirect(url_for('feed'))
+    return redirect(url_for('login'))
 
-# Comment on post route
+# Handle adding comments to posts
 @app.route('/comment/<int:post_id>', methods=['POST'])
 def comment_post(post_id):
     if 'username' in session:
-        comment = request.form['comment']
-        user = load_users()[session['username']]
-
-        posts = load_posts()
-        new_comment = {"author": user['name'], "comment": comment}
-        posts[post_id]['comments'].append(new_comment)
-        save_posts(posts)
+        comment = {
+            "author": users[session['username']]['name'],
+            "comment": request.form['comment']
+        }
+        posts[post_id]['comments'].append(comment)
         return redirect(url_for('feed'))
     return redirect(url_for('login'))
+
+# Handle post deletion
+# Handle post deletion
+@app.route('/delete/<int:post_id>')
+def delete_post(post_id):
+    global posts  # Declare global posts at the start of the function
+    if 'username' in session:  # Ensure the user is logged in
+        user = users[session['username']]  # Get the current user from session
+        post = next((p for p in posts if p['id'] == post_id), None)  # Find the post by ID
+        
+        if post and post['author'] == user['name']:  # Check if the current user is the author
+            posts = [p for p in posts if p['id'] != post_id]  # Remove the post from the list
+            return redirect(url_for('feed'))  # Redirect to the feed after deletion
+        else:
+            return "You do not have permission to delete this post.", 403  # Forbidden if not the author
+    return redirect(url_for('login'))  # Redirect to login if the user is not logged in
+
 
 # Logout route
 @app.route('/logout')
@@ -138,5 +117,6 @@ def logout():
     session.pop('username', None)
     return redirect(url_for('login'))
 
+# Run the application
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5000)

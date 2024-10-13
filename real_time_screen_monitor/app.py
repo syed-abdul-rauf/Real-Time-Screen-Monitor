@@ -49,7 +49,10 @@ def signup():
             # Save the new user to the JSON file
             users[username] = {"password": password, "name": name}
             save_users(users)
-            return redirect(url_for('login'))
+
+            # Automatically log in the user after signup
+            session['username'] = username
+            return redirect(url_for('feed'))
 
     return render_template('signup.html')
 

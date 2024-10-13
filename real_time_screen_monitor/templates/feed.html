@@ -11,7 +11,7 @@
         <h1>Welcome, {{ user['name'] }}!</h1>
         <a href="/logout">Logout</a>
     </div>
-
+    
     <div class="feed">
         <h2>Create a Post</h2>
         <form action="/create_post" method="POST">
@@ -25,15 +25,8 @@
                 <div class="post">
                     <p><strong>{{ post.author }}</strong>: {{ post.content }}</p>
                     <p>Likes: {{ post.likes }} | Dislikes: {{ post.dislikes }}</p>
-                    <a href="/like/{{ loop.index0 }}">Like</a> |
-                    <a href="/dislike/{{ loop.index0 }}">Dislike</a> |
-
-                    <!-- Only show delete option if the logged-in user created the post -->
-                    {% if post.username == user['name'] %}
-                    <form action="/delete/{{ loop.index0 }}" method="POST" style="display:inline;">
-                        <button type="submit">Delete</button>
-                    </form>
-                    {% endif %}
+                    <a href="/like/{{ loop.index0 }}">Like</a> | 
+                    <a href="/dislike/{{ loop.index0 }}">Dislike</a>
 
                     <form action="/comment/{{ loop.index0 }}" method="POST" class="comment-form">
                         <input type="text" name="comment" placeholder="Write a comment..." required>

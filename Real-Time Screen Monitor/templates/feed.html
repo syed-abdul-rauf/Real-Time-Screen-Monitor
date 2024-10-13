@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feed - Social Network</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="navbar">
+        <h1>Welcome, {{ user['name'] }}!</h1>
+        <a href="/logout">Logout</a>
+    </div>
+    
+    <div class="feed">
+        <h2>Create a Post</h2>
+        <form action="/create_post" method="POST">
+            <textarea name="content" rows="4" placeholder="What's on your mind?" required></textarea>
+            <button type="submit">Post</button>
+        </form>
+
+        <h2>Your Feed</h2>
+        <div class="posts">
+            {% for post in posts %}
+                <div class="post">
+                    <p><strong>{{ post.author }}</strong>: {{ post.content }}</p>
+                    <p>Likes: {{ post.likes }} | Dislikes: {{ post.dislikes }}</p>
+                    <a href="/like/{{ loop.index0 }}">Like</a> | 
+                    <a href="/dislike/{{ loop.index0 }}">Dislike</a>
+
+                    <form action="/comment/{{ loop.index0 }}" method="POST" class="comment-form">
+                        <input type="text" name="comment" placeholder="Write a comment..." required>
+                        <button type="submit">Comment</button>
+                    </form>
+
+                    <div class="comments">
+                        <h4>Comments:</h4>
+                        <ul>
+                            {% for comment in post.comments %}
+                                <li><strong>{{ comment.author }}:</strong> {{ comment.comment }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

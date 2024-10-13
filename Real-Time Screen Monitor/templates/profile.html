@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Social Network</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="profile-container">
+        <h1>{{ user_profile['name'] }}'s Profile</h1>
+        <!-- Display user information -->
+        <p>Username: {{ user_profile['name'] }}</p>
+    </div>
+</body>
+</html>

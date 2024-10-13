@@ -8,6 +8,7 @@ posts = []
 
 @app.route('/')
 def index():
+    # Always redirect to login if the user is not logged in
     if 'username' in session:
         return redirect(url_for('feed'))
     return redirect(url_for('login'))
@@ -47,7 +48,7 @@ def feed():
     if 'username' in session:
         user = users[session['username']]
         return render_template('feed.html', user=user, posts=posts)
-    return redirect(url_for('login'))
+    return redirect(url_for('login'))  # Redirect to login if user is not logged in
 
 @app.route('/create_post', methods=['POST'])
 def create_post():

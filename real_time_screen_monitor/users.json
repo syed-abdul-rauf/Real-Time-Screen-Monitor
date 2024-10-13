@@ -1,1 +1,10 @@
-[{"name": "1", "username": "1", "password": "1", "connected": true, "connect_time": "2024-09-07 23:37:29", "disconnect_time": null}]
+{
+    "mahad": {
+        "password": "123",
+        "name": "mahad"
+    },
+    "admin": {
+        "password": "123",
+        "name": "mahad"
+    }
+}

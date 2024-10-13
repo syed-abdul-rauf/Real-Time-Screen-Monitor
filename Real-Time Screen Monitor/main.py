@@ -3,7 +3,7 @@ from flask_session import Session
 import cv2
 import numpy as np
 import os
- 
+
 # Import pyautogui only if we are not in a headless environment
 if 'DISPLAY' in os.environ:
     import pyautogui
@@ -77,6 +77,30 @@ def employee_dashboard():
     
     return redirect(url_for('login'))
 
+@app.route('/add_user', methods=['GET', 'POST'])
+def add_user():
+    if not session.get('is_admin'):
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        name = request.form['name']
+        username = request.form['username']
+        password = request.form['password']
+
+        # Add the new user to the hardcoded users list
+        new_user = {
+            'id': len(users) + 1,
+            'name': name,
+            'username': username,
+            'password': password,
+            'is_admin': False  # By default, new users are not admin
+        }
+        users.append(new_user)
+
+        return redirect(url_for('admin_dashboard'))
+
+    return render_template('add_user.html')
+
 @app.route('/logout')
 def logout():
     session.clear()
@@ -112,3 +136,20 @@ def internal_error(error):
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=10000)
+
+@app.route('/')#+
+def home():#+
+    """#+
+    Redirects the user to the login page.#+
+#+
+    This function is a route handler for the root URL ("/"). When a GET request is made to this URL,#+
+    the function redirects the user to the login page using Flask's `redirect` function and the `url_for`#+
+    function to generate the URL for the login page.#+
+#+
+    Parameters:#+
+    None#+
+#+
+    Returns:#+
+    A Flask response object that redirects the user to the login page.#+
+    """#+
+    return redirect(url_for('login'))#+

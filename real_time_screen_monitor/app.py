@@ -1,94 +1,120 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
-users = {}
+# Simulated user database
+users = {
+    "john_doe": {"password": "password123", "name": "John Doe", "friends": ["jane_doe"]},
+    "jane_doe": {"password": "password456", "name": "Jane Doe", "friends": ["john_doe"]}
+}
+
+# Simulated post database
 posts = []
 
+# Index page (Login page)
 @app.route('/')
 def index():
-    # Always redirect to login if the user is not logged in
     if 'username' in session:
         return redirect(url_for('feed'))
-    return redirect(url_for('login'))
+    return render_template('index.html')
 
+# Signup page route
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        name = request.form['name']
+        
         if username in users:
-            flash('Username already exists. Please choose a different one.')
-            return redirect(url_for('signup'))
-        users[username] = {'name': username, 'password': password}
-        session['username'] = username
-        return redirect(url_for('feed'))
+            return "Username already exists!"
+        else:
+            users[username] = {"password": password, "name": name, "friends": []}
+            return redirect(url_for('index'))
     return render_template('signup.html')
 
-@app.route('/login', methods=['GET', 'POST'])
+# Login route
+@app.route('/login', methods=['POST'])
 def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        if username in users and users[username]['password'] == password:
-            session['username'] = username
-            return redirect(url_for('feed'))
-        flash('Invalid username or password')
-        return redirect(url_for('login'))
-    return render_template('login.html')
+    username = request.form['username']
+    password = request.form['password']
+    if username in users and users[username]['password'] == password:
+        session['username'] = username
+        return redirect(url_for('feed'))
+    else:
+        return 'Invalid credentials, please try again!'
 
-@app.route('/logout')
-def logout():
-    session.pop('username', None)
-    return redirect(url_for('login'))
-
-@app.route('/feed', methods=['GET'])
+# Feed page (where posts will be displayed)
+@app.route('/feed')
 def feed():
     if 'username' in session:
         user = users[session['username']]
         return render_template('feed.html', user=user, posts=posts)
-    return redirect(url_for('login'))  # Redirect to login if user is not logged in
+    return redirect(url_for('index'))
 
+# Route for creating a new post
 @app.route('/create_post', methods=['POST'])
 def create_post():
     if 'username' in session:
-        user = users[session['username']]
-        content = request.form.get('content')
-        if content:
-            posts.append({
-                'author': user['name'],
-                'content': content,
-                'likes': 0,
-                'dislikes': 0,
-                'comments': [],
-                'username': session['username']
-            })
+        user = session['username']
+        content = request.form['content']
+        
+        post = {
+            "author": user,
+            "content": content,
+            "likes": 0,
+            "dislikes": 0,
+            "comments": []
+        }
+        posts.insert(0, post)  # Insert at the top of the feed
         return redirect(url_for('feed'))
-    return redirect(url_for('login'))
+    return redirect(url_for('index'))
 
+# Route for liking a post
 @app.route('/like/<int:post_id>')
 def like_post(post_id):
-    if 'username' in session and post_id < len(posts):
-        posts[post_id]['likes'] += 1
-    return redirect(url_for('feed'))
+    if 'username' in session:
+        if post_id < len(posts):
+            posts[post_id]['likes'] += 1
+        return redirect(url_for('feed'))
+    return redirect(url_for('index'))
 
+# Route for disliking a post
 @app.route('/dislike/<int:post_id>')
 def dislike_post(post_id):
-    if 'username' in session and post_id < len(posts):
-        posts[post_id]['dislikes'] += 1
-    return redirect(url_for('feed'))
+    if 'username' in session:
+        if post_id < len(posts):
+            posts[post_id]['dislikes'] += 1
+        return redirect(url_for('feed'))
+    return redirect(url_for('index'))
 
+# Route for commenting on a post
 @app.route('/comment/<int:post_id>', methods=['POST'])
-def comment(post_id):
-    if 'username' in session and post_id < len(posts):
-        comment_content = request.form.get('comment')
-        if comment_content:
+def comment_post(post_id):
+    if 'username' in session:
+        if post_id < len(posts):
+            comment = request.form['comment']
             posts[post_id]['comments'].append({
-                'author': users[session['username']]['name'],
-                'comment': comment_content
+                "author": session['username'],
+                "comment": comment
             })
-    return redirect(url_for('feed'))
+        return redirect(url_for('feed'))
+    return redirect(url_for('index'))
+
+# Profile page
+@app.route('/profile/<username>')
+def profile(username):
+    if 'username' in session and username in users:
+        user_profile = users[username]
+        return render_template('profile.html', user_profile=user_profile)
+    return redirect(url_for('index'))
+
+# Logout functionality
+@app.route('/logout')
+def logout():
+    session.pop('username', None)
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run(debug=True)

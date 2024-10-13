@@ -7,4 +7,3 @@ pyautogui==0.9.54
 numpy==1.23.5
 gunicorn==23.0.0
 flask_sqlalchemy==3.0.3
-flask_socketio
